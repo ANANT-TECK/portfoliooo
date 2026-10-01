@@ -77,7 +77,7 @@ function Index() {
               </div>
             </div>
             <div className="relative mx-auto w-full max-w-[500px] px-7">
-              <div className="absolute -left-4 top-14 font-hand text-2xl text-primary">the face behind every frame ↗</div>
+              <div className="absolute -left-4 top-14 hidden font-hand text-2xl text-primary md:block">the face behind every frame ↗</div>
               <div className="relative rotate-[-3deg] bg-paper p-3 pb-16 shadow-hard transition-transform duration-300 hover:rotate-[-1deg]">
                 <span className="absolute -left-5 -top-3 h-9 w-28 rotate-[-8deg] bg-paper/60 backdrop-blur-[1px]" />
                 <span className="absolute -right-5 -top-2 h-9 w-28 rotate-[9deg] bg-paper/60 backdrop-blur-[1px]" />
@@ -185,10 +185,10 @@ function Header({ open, setOpen }: { open: boolean; setOpen: (open: boolean) => 
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 md:px-10">
         <a href="#home" className="flex items-center gap-3"><img src={kaizoAsset.url} alt="Kaizo avatar" className="h-10 w-10 rounded-full border-2 border-primary object-cover" /><span className="font-display text-2xl">KAIZO</span></a>
         <nav aria-label="Main navigation" className="hidden items-center gap-7 md:flex">{navItems.map(([label, id]) => <a key={id} href={`#${id}`} className="font-mono text-[11px] uppercase hover:text-primary">{label}</a>)}<Button asChild><a href={WHATSAPP_URL} target="_blank" rel="noreferrer"><MessageCircle size={16} /> WhatsApp</a></Button></nav>
-        <Button variant="icon" className="md:hidden" aria-label="Open navigation" onClick={() => setOpen(true)}><Menu /></Button>
+        <Button variant="icon" className="md:hidden" aria-label="Open navigation" aria-expanded={open} onClick={() => setOpen(true)}><Menu className="h-6 w-6" strokeWidth={2.5} /></Button>
       </div>
     </header>
-    {open && <div className="fixed inset-0 z-[70] flex flex-col bg-background p-6 md:hidden"><div className="flex items-center justify-between"><span className="font-display text-3xl">KAIZO</span><Button variant="icon" aria-label="Close navigation" onClick={() => setOpen(false)}><X /></Button></div><nav className="my-auto flex flex-col gap-2">{navItems.map(([label, id]) => <a key={id} href={`#${id}`} onClick={() => setOpen(false)} className="font-display text-6xl uppercase hover:text-primary">{label}</a>)}</nav><div className="flex gap-5 font-mono text-xs uppercase"><a href={WHATSAPP_URL}>WhatsApp</a><a href={INSTAGRAM_URL}>Instagram</a></div></div>}
+    {open && <div className="fixed inset-0 z-[70] flex flex-col bg-background p-6 md:hidden"><div className="flex items-center justify-between"><span className="font-display text-3xl">KAIZO</span><Button variant="icon" aria-label="Close navigation" onClick={() => setOpen(false)}><X className="h-6 w-6" strokeWidth={2.5} /></Button></div><nav className="my-auto flex flex-col gap-2">{navItems.map(([label, id]) => <a key={id} href={`#${id}`} onClick={() => setOpen(false)} className="font-display text-6xl uppercase hover:text-primary">{label}</a>)}</nav><div className="flex gap-5 font-mono text-xs uppercase"><a href={WHATSAPP_URL}>WhatsApp</a><a href={INSTAGRAM_URL}>Instagram</a></div></div>}
   </>;
 }
 
