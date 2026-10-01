@@ -8,3 +8,6 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Keep the public experience as one anchor-driven portfolio page because KAIZO explicitly requires a single scrolling narrative.
+- Centralize public contact destinations in `src/lib/links.ts` so every conversion action stays consistent.
