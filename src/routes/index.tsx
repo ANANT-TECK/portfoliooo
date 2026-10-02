@@ -63,7 +63,7 @@ function Index() {
         const visible = cards.map((card) => {
           const rect = card.getBoundingClientRect();
           const shown = Math.max(0, Math.min(rect.bottom, window.innerHeight) - Math.max(rect.top, 0));
-          return { id: card.dataset.videoId ?? "", ratio: shown / rect.height, distance: Math.abs((rect.top + rect.bottom) / 2 - middle) };
+          return { id: card.dataset['videoId'] ?? "", ratio: shown / rect.height, distance: Math.abs((rect.top + rect.bottom) / 2 - middle) };
         }).filter((item) => item.ratio >= 0.55);
         visible.sort((a, b) => b.ratio - a.ratio || a.distance - b.distance);
         setActiveVideoId(visible[0]?.id ?? null);
