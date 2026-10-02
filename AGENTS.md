@@ -9,5 +9,6 @@
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
 
-- Keep the public experience as one anchor-driven portfolio page because KAIZO explicitly requires a single scrolling narrative.
+- Keep the public experience as one anchor-driven portfolio page because the brand requires a single scrolling narrative.
+- Present EDITEDGE as the business and KAIZO as its sole editor and owner, because the identity is personal-led rather than an agency.
 - Centralize public contact destinations in `src/lib/links.ts` so every conversion action stays consistent.
