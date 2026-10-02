@@ -126,7 +126,7 @@ function Index() {
                   <p className="font-hand text-xl text-primary md:text-2xl">{group.caption}</p>
                 </div>
                 <div className={group.vertical ? "grid grid-cols-2 gap-4 md:grid-cols-4" : "grid gap-5 md:grid-cols-3"}>
-                  {group.ids.map((id, index) => <VideoCard key={id} id={id} active={activeVideoId === id} vertical={group.vertical} index={index + groupIndex} />)}
+                  {group.ids.map((id, index) => <VideoCard key={id} id={id} active={activeVideoId === id} onSelect={() => setActiveVideoId(id)} vertical={group.vertical} index={index + groupIndex} />)}
                 </div>
               </article>
             ))}
@@ -209,32 +209,58 @@ function Header({ open, setOpen }: { open: boolean; setOpen: (open: boolean) => 
   return <>
     <header className="fixed inset-x-0 top-0 z-50 border-b border-border bg-background/95 backdrop-blur-sm">
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 md:px-10">
-        <a href="#home" className="flex items-center gap-3"><img src={kaizoAsset.url} alt="Kaizo avatar" className="h-10 w-10 rounded-full border-2 border-primary object-cover" /><span className="font-display text-2xl">KAIZO</span></a>
-        <nav aria-label="Main navigation" className="hidden items-center gap-7 md:flex">{navItems.map(([label, id]) => <a key={id} href={`#${id}`} className="font-mono text-[11px] uppercase hover:text-primary">{label}</a>)}<Button asChild><a href={WHATSAPP_URL} target="_blank" rel="noreferrer"><MessageCircle size={16} /> WhatsApp</a></Button></nav>
+        <a href="#home" className="flex items-center gap-3"><img src={kaizoAsset.url} alt="Kaizo avatar" className="h-10 w-10 rounded-full border-2 border-primary object-cover" /><span className="flex flex-col"><span className="font-display text-xl leading-none md:text-2xl">EDITEDGE</span><span className="font-hand text-base leading-none text-primary">by KAIZO</span></span></a>
+        <nav aria-label="Main navigation" className="hidden items-center gap-7 md:flex">{navItems.map(([label, id]) => <a key={id} href={`#${id}`} className="font-mono text-[11px] uppercase hover:text-primary">{label}</a>)}<Button asChild><a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer"><MessageCircle size={16} /> WhatsApp</a></Button></nav>
         <Button variant="icon" className="md:hidden" aria-label="Open navigation" aria-expanded={open} onClick={() => setOpen(true)}><Menu className="h-6 w-6" strokeWidth={2.5} /></Button>
       </div>
     </header>
-    {open && <div className="fixed inset-0 z-[70] flex flex-col bg-background p-6 md:hidden"><div className="flex items-center justify-between"><span className="font-display text-3xl">KAIZO</span><Button variant="icon" aria-label="Close navigation" onClick={() => setOpen(false)}><X className="h-6 w-6" strokeWidth={2.5} /></Button></div><nav className="my-auto flex flex-col gap-2">{navItems.map(([label, id]) => <a key={id} href={`#${id}`} onClick={() => setOpen(false)} className="font-display text-6xl uppercase hover:text-primary">{label}</a>)}</nav><div className="flex gap-5 font-mono text-xs uppercase"><a href={WHATSAPP_URL}>WhatsApp</a><a href={INSTAGRAM_URL}>Instagram</a></div></div>}
+    {open && <div className="fixed inset-0 z-[70] flex flex-col bg-background p-6 md:hidden"><div className="flex items-center justify-between"><span className="flex flex-col"><span className="font-display text-3xl">EDITEDGE</span><span className="font-hand text-xl text-primary">by KAIZO</span></span><Button variant="icon" aria-label="Close navigation" onClick={() => setOpen(false)}><X className="h-6 w-6" strokeWidth={2.5} /></Button></div><nav className="my-auto flex flex-col gap-2">{navItems.map(([label, id]) => <a key={id} href={`#${id}`} onClick={() => setOpen(false)} className="font-display text-6xl uppercase hover:text-primary">{label}</a>)}</nav><div className="flex gap-5 font-mono text-xs uppercase"><a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer">WhatsApp</a><a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">Instagram</a></div></div>}
   </>;
 }
 
 function SectionHeading({ number, title, note, dark = false }: { number: string; title: string; note: string; dark?: boolean }) {
-  return <div className="mx-auto max-w-7xl"><p className="font-mono text-xs text-primary">{number}</p><div className={`mt-3 flex flex-col justify-between gap-3 border-b-2 pb-5 md:flex-row md:items-end ${dark ? "border-ink" : "border-foreground"}`}><h2 className="font-display text-6xl uppercase md:text-8xl">{title}</h2><p className="font-hand text-2xl text-primary">{note}</p></div></div>;
+  return <div className="mx-auto max-w-7xl"><p className="font-mono text-xs text-primary">{number}</p><div className={`mt-3 flex flex-col justify-between gap-1 border-b-2 pb-3 md:flex-row md:items-end md:gap-3 md:pb-5 ${dark ? "border-ink" : "border-foreground"}`}><h2 className="font-display text-5xl uppercase md:text-8xl">{title}</h2><p className="font-hand text-xl text-primary md:text-2xl">{note}</p></div></div>;
 }
 
-function VideoCard({ id, vertical, index }: { id: string; vertical: boolean; index: number }) {
-  const [playing, setPlaying] = useState(false);
+function VideoCard({ id, vertical, index, active, onSelect }: { id: string; vertical: boolean; index: number; active: boolean; onSelect: () => void }) {
+  const [loaded, setLoaded] = useState(false);
+  const [autoplayFailed, setAutoplayFailed] = useState(false);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const playerRef = useRef<import("@vimeo/player").default | null>(null);
+  useEffect(() => { if (active) setLoaded(true); }, [active]);
+  useEffect(() => {
+    if (!loaded || !iframeRef.current) return;
+    let disposed = false;
+    let player: import("@vimeo/player").default | null = null;
+    import("@vimeo/player").then(({ default: Player }) => {
+      if (disposed || !iframeRef.current) return;
+      player = new Player(iframeRef.current);
+      playerRef.current = player;
+      player.ready().then(() => {
+        if (disposed) return;
+        player?.setVolume(0).catch(() => {});
+        if (active) player?.play().then(() => setAutoplayFailed(false)).catch(() => setAutoplayFailed(true));
+      }).catch(() => { if (!disposed) setAutoplayFailed(true); });
+    });
+    return () => { disposed = true; player?.pause().catch(() => {}); playerRef.current = null; };
+  }, [loaded, id]);
+  useEffect(() => {
+    const player = playerRef.current;
+    if (!player) return;
+    if (active) player.play().then(() => setAutoplayFailed(false)).catch(() => setAutoplayFailed(true));
+    else player.pause().catch(() => {});
+  }, [active]);
   const rotation = index % 3 === 0 ? "rotate-[1deg]" : index % 2 === 0 ? "rotate-[-1deg]" : "rotate-[.5deg]";
-  return <div className={`group relative border-2 border-ink bg-ink p-2 shadow-hard transition-transform hover:-translate-y-1 ${rotation}`}>
-    {playing ? <iframe src={`https://player.vimeo.com/video/${id}?autoplay=1&dnt=1`} title={`KAIZO portfolio video ${id}`} loading="lazy" allow="autoplay; fullscreen; picture-in-picture" allowFullScreen className={`w-full border-0 ${vertical ? "aspect-[9/16]" : "aspect-video"}`} /> : <Button variant="paper" onClick={() => setPlaying(true)} className={`relative w-full overflow-hidden border-0 p-0 ${vertical ? "aspect-[9/16]" : "aspect-video"}`} aria-label={`Play portfolio video ${id}`}><span className="absolute inset-0 halftone opacity-70" /><span className="relative flex items-center gap-2 font-display text-3xl"><Play fill="currentColor" /> PLAY</span><span className="absolute bottom-3 left-3 font-mono text-[9px]">VIMEO / {id}</span></Button>}
+  return <div data-video-id={id} className={`group relative border-2 border-ink bg-ink p-2 shadow-hard transition-transform hover:-translate-y-1 ${rotation}`}>
+    {loaded ? <div className="relative"><iframe ref={iframeRef} src={`https://player.vimeo.com/video/${id}?autoplay=0&muted=1&playsinline=1&dnt=1`} title={`EDITEDGE portfolio video ${id}`} loading="lazy" allow="autoplay; fullscreen; picture-in-picture" allowFullScreen className={`w-full border-0 ${vertical ? "aspect-[9/16]" : "aspect-video"}`} />{autoplayFailed && <Button variant="paper" onClick={() => { onSelect(); playerRef.current?.play().then(() => setAutoplayFailed(false)).catch(() => {}); }} className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" aria-label={`Play portfolio video ${id}`}><Play size={16} fill="currentColor" /> PLAY</Button>}</div> : <Button variant="paper" onClick={() => { setLoaded(true); onSelect(); }} className={`relative w-full overflow-hidden border-0 p-0 ${vertical ? "aspect-[9/16]" : "aspect-video"}`} aria-label={`Play portfolio video ${id}`}><span className="absolute inset-0 halftone opacity-70" /><span className="relative flex items-center gap-2 font-display text-3xl"><Play fill="currentColor" /> PLAY</span><span className="absolute bottom-3 left-3 font-mono text-[9px]">VIMEO / {id}</span></Button>}
     <span className="absolute -top-3 left-1/2 h-7 w-20 -translate-x-1/2 rotate-[2deg] bg-paper/70" />
   </div>;
 }
 
 function ContactLink({ href, label, value, icon }: { href: string; label: string; value: string; icon: React.ReactNode }) {
-  return <a href={href} target={href.startsWith("http") ? "_blank" : undefined} rel={href.startsWith("http") ? "noreferrer" : undefined} className="group flex min-w-0 items-center gap-4 border-b border-border py-5 hover:border-primary"><span className="text-primary">{icon}</span><span className="min-w-0"><span className="block font-mono text-[10px] uppercase text-muted-foreground">{label}</span><span className="block break-words text-xl font-semibold md:text-2xl">{value}</span></span><ArrowRight className="ml-auto shrink-0 transition-transform group-hover:translate-x-1" /></a>;
+   return <a href={href} target={href.startsWith("http") ? "_blank" : undefined} rel={href.startsWith("http") ? "noopener noreferrer" : undefined} className="group flex min-w-0 items-center gap-4 border-b border-border py-5 hover:border-primary"><span className="text-primary">{icon}</span><span className="min-w-0"><span className="block font-mono text-[10px] uppercase text-muted-foreground">{label}</span><span className="block break-words text-xl font-semibold md:text-2xl">{value}</span></span><ArrowRight className="ml-auto shrink-0 transition-transform group-hover:translate-x-1" /></a>;
 }
 
 function Footer() {
-  return <footer className="border-t border-border px-5 py-10 md:px-10"><div className="mx-auto flex max-w-7xl flex-col gap-7 md:flex-row md:items-end md:justify-between"><div><p className="font-display text-5xl">KAIZO</p><p className="mt-2 max-w-sm font-mono text-[10px] uppercase text-muted-foreground">© 2026 KAIZO. Designed, edited & owned by Kaizo. All rights reserved.</p></div><nav className="flex flex-wrap gap-5 font-mono text-[10px] uppercase">{navItems.map(([label, id]) => <a key={id} href={`#${id}`} className="hover:text-primary">{label}</a>)}<a href={INSTAGRAM_URL}>Instagram</a><a href={WHATSAPP_URL}>WhatsApp</a></nav></div></footer>;
+  return <footer className="border-t border-border px-5 py-10 md:px-10"><div className="mx-auto flex max-w-7xl flex-col gap-7 md:flex-row md:items-end md:justify-between"><div><p className="font-display text-5xl">EDITEDGE</p><p className="font-hand text-2xl text-primary">by KAIZO</p><p className="mt-2 max-w-sm font-mono text-[10px] uppercase text-muted-foreground">© 2026 EDITEDGE. Created and owned by Kaizo. All rights reserved.</p></div><nav className="flex flex-wrap gap-5 font-mono text-[10px] uppercase">{navItems.map(([label, id]) => <a key={id} href={`#${id}`} className="hover:text-primary">{label}</a>)}<a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">Instagram</a><a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer">WhatsApp</a></nav></div></footer>;
 }
