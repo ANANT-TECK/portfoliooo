@@ -211,7 +211,7 @@ function Header({ open, setOpen }: { open: boolean; setOpen: (open: boolean) => 
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 md:px-10">
         <a href="#home" className="flex items-center gap-3"><img src={kaizoAsset.url} alt="Kaizo avatar" className="h-10 w-10 rounded-full border-2 border-primary object-cover" /><span className="flex flex-col"><span className="font-display text-xl leading-none md:text-2xl">EDITEDGE</span><span className="font-hand text-base leading-none text-primary">by KAIZO</span></span></a>
         <nav aria-label="Main navigation" className="hidden items-center gap-7 md:flex">{navItems.map(([label, id]) => <a key={id} href={`#${id}`} className="font-mono text-[11px] uppercase hover:text-primary">{label}</a>)}<Button asChild><a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer"><MessageCircle size={16} /> WhatsApp</a></Button></nav>
-        <Button variant="icon" className="md:hidden" aria-label="Open navigation" aria-expanded={open} onClick={() => setOpen(true)}><Menu className="h-6 w-6" strokeWidth={2.5} /></Button>
+        <Button variant="icon" className="min-w-12 shrink-0 p-0 md:hidden" aria-label="Open navigation" aria-expanded={open} onClick={() => setOpen(true)}><Menu className="h-6 w-6 shrink-0" strokeWidth={2.5} /></Button>
       </div>
     </header>
     {open && <div className="fixed inset-0 z-[70] flex flex-col bg-background p-6 md:hidden"><div className="flex items-center justify-between"><span className="flex flex-col"><span className="font-display text-3xl">EDITEDGE</span><span className="font-hand text-xl text-primary">by KAIZO</span></span><Button variant="icon" aria-label="Close navigation" onClick={() => setOpen(false)}><X className="h-6 w-6" strokeWidth={2.5} /></Button></div><nav className="my-auto flex flex-col gap-2">{navItems.map(([label, id]) => <a key={id} href={`#${id}`} onClick={() => setOpen(false)} className="font-display text-6xl uppercase hover:text-primary">{label}</a>)}</nav><div className="flex gap-5 font-mono text-xs uppercase"><a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer">WhatsApp</a><a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">Instagram</a></div></div>}
@@ -250,6 +250,15 @@ function VideoCard({ id, vertical, index, active, onSelect }: { id: string; vert
     if (active) player.play().then(() => setAutoplayFailed(false)).catch(() => setAutoplayFailed(true));
     else player.pause().catch(() => {});
   }, [active]);
+  useEffect(() => {
+    if (!active || !loaded) return;
+    const timeout = window.setTimeout(() => {
+      playerRef.current?.getPaused().then((paused) => {
+        if (paused) setAutoplayFailed(true);
+      }).catch(() => setAutoplayFailed(true));
+    }, 5500);
+    return () => window.clearTimeout(timeout);
+  }, [active, loaded]);
   const rotation = index % 3 === 0 ? "rotate-[1deg]" : index % 2 === 0 ? "rotate-[-1deg]" : "rotate-[.5deg]";
   return <div data-video-id={id} className={`group relative border-2 border-ink bg-ink p-2 shadow-hard transition-transform hover:-translate-y-1 ${rotation}`}>
     {loaded ? <div className="relative"><iframe ref={iframeRef} src={`https://player.vimeo.com/video/${id}?autoplay=0&muted=1&playsinline=1&dnt=1`} title={`EDITEDGE portfolio video ${id}`} loading="lazy" allow="autoplay; fullscreen; picture-in-picture" allowFullScreen className={`w-full border-0 ${vertical ? "aspect-[9/16]" : "aspect-video"}`} />{autoplayFailed && <Button variant="paper" onClick={() => { onSelect(); playerRef.current?.play().then(() => setAutoplayFailed(false)).catch(() => {}); }} className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" aria-label={`Play portfolio video ${id}`}><Play size={16} fill="currentColor" /> PLAY</Button>}</div> : <Button variant="paper" onClick={() => { setLoaded(true); onSelect(); }} className={`relative w-full overflow-hidden border-0 p-0 ${vertical ? "aspect-[9/16]" : "aspect-video"}`} aria-label={`Play portfolio video ${id}`}><span className="absolute inset-0 halftone opacity-70" /><span className="relative flex items-center gap-2 font-display text-3xl"><Play fill="currentColor" /> PLAY</span><span className="absolute bottom-3 left-3 font-mono text-[9px]">VIMEO / {id}</span></Button>}
