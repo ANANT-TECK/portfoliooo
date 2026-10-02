@@ -1,18 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ArrowDown, ArrowRight, Instagram, Mail, Menu, MessageCircle, Phone, Play, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import kaizoAsset from "../assets/kaizo-main.png.asset.json";
 import { Button } from "../components/ui/button";
 import { CONTACT, INSTAGRAM_URL, PROJECT_FORM_URL, WHATSAPP_URL } from "../lib/links";
 
-const description = "I'm Kaizo. I edit videos that hold attention — reels, long form, color grading and cinematic work.";
+const description = "EDITEDGE is my video editing business. I'm Kaizo, the editor behind every reel, long-form cut, color grade and cinematic edit.";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "KAIZO — Video Editor" },
+      { title: "EDITEDGE — Video editing by KAIZO" },
       { name: "description", content: description },
-      { property: "og:title", content: "KAIZO — Video Editor" },
+      { property: "og:title", content: "EDITEDGE — Video editing by KAIZO" },
       { property: "og:description", content: description },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "/" },
@@ -21,7 +21,7 @@ export const Route = createFileRoute("/")({
     links: [{ rel: "canonical", href: "/" }],
     scripts: [{
       type: "application/ld+json",
-      children: JSON.stringify({ "@context": "https://schema.org", "@type": "Person", name: "Kaizo", jobTitle: "Video Editor", sameAs: [INSTAGRAM_URL] }),
+       children: JSON.stringify({ "@context": "https://schema.org", "@type": "Person", name: "Kaizo", jobTitle: "Video Editor and owner of EDITEDGE", worksFor: { "@type": "Organization", name: "EDITEDGE" }, sameAs: [INSTAGRAM_URL] }),
     }],
   }),
   component: Index,
@@ -47,60 +47,86 @@ const prices = [
 
 function Index() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
   const [seconds, setSeconds] = useState(0);
   useEffect(() => {
     const timer = window.setInterval(() => setSeconds((value) => value + 1), 1000);
     return () => window.clearInterval(timer);
+  }, []);
+  useEffect(() => {
+    const cards = Array.from(document.querySelectorAll<HTMLElement>("[data-video-id]"));
+    let frame = 0;
+    const update = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const middle = window.innerHeight / 2;
+        const visible = cards.map((card) => {
+          const rect = card.getBoundingClientRect();
+          const shown = Math.max(0, Math.min(rect.bottom, window.innerHeight) - Math.max(rect.top, 0));
+          return { id: card.dataset.videoId ?? "", ratio: shown / rect.height, distance: Math.abs((rect.top + rect.bottom) / 2 - middle) };
+        }).filter((item) => item.ratio >= 0.55);
+        visible.sort((a, b) => b.ratio - a.ratio || a.distance - b.distance);
+        setActiveVideoId(visible[0]?.id ?? null);
+      });
+    };
+    const observer = new IntersectionObserver(update, { threshold: [0, 0.25, 0.55, 0.75, 1] });
+    cards.forEach((card) => observer.observe(card));
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    update();
+    return () => { observer.disconnect(); window.removeEventListener("scroll", update); window.removeEventListener("resize", update); cancelAnimationFrame(frame); };
   }, []);
 
   return (
     <div className="film-grain min-h-screen bg-background text-foreground">
       <Header open={menuOpen} setOpen={setMenuOpen} />
       <main>
-        <section id="home" className="relative flex min-h-[92vh] scroll-mt-20 items-center overflow-hidden border-b border-border px-5 pb-16 pt-28 md:px-10 lg:px-16">
+        <section id="home" className="relative flex scroll-mt-20 items-center overflow-hidden border-b border-border px-5 pb-9 pt-27 md:min-h-[780px] md:px-10 md:pb-16 md:pt-28 lg:px-16">
           <div className="halftone absolute right-0 top-0 h-2/3 w-1/2 opacity-40" />
           <div className="absolute bottom-6 left-5 hidden font-mono text-[10px] text-muted-foreground [writing-mode:vertical-rl] md:block">FRAME 001 / KAIZO ARCHIVE</div>
-          <div className="relative mx-auto grid w-full max-w-7xl items-center gap-14 lg:grid-cols-[1.05fr_.95fr]">
+          <div className="relative mx-auto grid w-full max-w-7xl items-center gap-10 md:gap-14 lg:grid-cols-[1.1fr_.9fr]">
             <div className="relative z-10">
-              <p className="font-hand text-3xl text-primary">hey, i'm</p>
-              <h1 className="font-display text-[clamp(6rem,17vw,13rem)] leading-[.78] tracking-normal">KAIZO</h1>
-              <p className="mt-7 font-mono text-xs uppercase text-primary md:text-sm">Video Editor · Color Grader · Storyteller</p>
-              <p className="mt-5 max-w-xl text-xl font-medium leading-snug md:text-3xl">I turn raw footage into videos people actually finish watching.</p>
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <Button asChild><a href={WHATSAPP_URL} target="_blank" rel="noreferrer"><MessageCircle size={18} /> Message me on WhatsApp <ArrowRight size={16} /></a></Button>
-                <Button asChild variant="outline"><a href={INSTAGRAM_URL} target="_blank" rel="noreferrer"><Instagram size={18} /> @editedge_kaizo</a></Button>
+              <h1 className="font-display text-[clamp(3.9rem,10vw,10rem)] leading-[.95] tracking-normal">EDITEDGE</h1>
+              <p className="mt-1 font-hand text-3xl text-primary md:mt-3 md:text-5xl">Video editing by KAIZO.</p>
+              <div className="mt-5 max-w-[55%] sm:max-w-none md:mt-8">
+                <p className="font-mono text-[10px] uppercase leading-relaxed text-primary md:text-sm">Reels · Long Form · Color Grading · Cinematic Editing</p>
+                <p className="mt-3 max-w-xl text-base font-medium leading-snug md:mt-5 md:text-3xl">I turn raw footage into videos people actually finish watching.</p>
               </div>
-              <p className="mt-5 flex items-center gap-2 font-mono text-[11px] uppercase text-muted-foreground"><span className="h-2 w-2 animate-[pulse-dot_1.5s_ease-in-out_infinite] rounded-full bg-chart-2" /> Open for new projects — replies on WhatsApp</p>
-              <div className="mt-9 flex flex-wrap items-center gap-6">
+              <div className="mt-6 flex flex-wrap gap-3 md:mt-8">
+                <Button asChild><a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer"><MessageCircle size={18} /> Message me on WhatsApp <ArrowRight size={16} /></a></Button>
+                <Button asChild variant="outline" className="hidden sm:inline-flex"><a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer"><Instagram size={18} /> @editedge_kaizo</a></Button>
+              </div>
+              <p className="mt-4 flex items-center gap-2 font-mono text-[10px] uppercase text-muted-foreground md:mt-5 md:text-[11px]"><span className="h-2 w-2 animate-[pulse-dot_1.5s_ease-in-out_infinite] rounded-full bg-chart-2" /> Open for new projects — replies on WhatsApp</p>
+              <div className="mt-5 flex flex-wrap items-center gap-6 md:mt-9">
                 <a href="#work" className="flex items-center gap-2 font-mono text-xs uppercase hover:text-primary">See my work <ArrowDown size={15} /></a>
-                <span className="rotate-[-2deg] font-hand text-2xl text-primary">Edited by Kaizo. Only Kaizo.</span>
+                <span className="hidden rotate-[-2deg] font-hand text-2xl text-primary md:inline">Edited by Kaizo. Only Kaizo.</span>
               </div>
             </div>
-            <div className="relative mx-auto w-full max-w-[500px] px-7">
+            <div className="absolute right-2 top-30 z-0 w-[39%] max-w-[190px] md:relative md:right-auto md:top-auto md:mx-auto md:w-full md:max-w-[500px] md:px-7">
               <div className="absolute -left-4 top-14 hidden font-hand text-2xl text-primary md:block">the face behind every frame ↗</div>
-              <div className="relative rotate-[-3deg] bg-paper p-3 pb-16 shadow-hard transition-transform duration-300 hover:rotate-[-1deg]">
-                <span className="absolute -left-5 -top-3 h-9 w-28 rotate-[-8deg] bg-paper/60 backdrop-blur-[1px]" />
-                <span className="absolute -right-5 -top-2 h-9 w-28 rotate-[9deg] bg-paper/60 backdrop-blur-[1px]" />
-                <img src={kaizoAsset.url} alt="Kaizo — main portrait" width="640" height="640" className="aspect-square w-full object-cover" />
-                <span className="absolute bottom-5 left-6 font-mono text-[11px] text-ink">SELF PORTRAIT / 2026</span>
+              <div className="relative rotate-[-3deg] bg-paper p-1.5 pb-7 shadow-hard transition-transform duration-300 hover:rotate-[-1deg] md:p-3 md:pb-16">
+                <span className="absolute -left-3 -top-2 h-5 w-14 rotate-[-8deg] bg-paper/60 backdrop-blur-[1px] md:-left-5 md:-top-3 md:h-9 md:w-28" />
+                <span className="absolute -right-3 -top-2 h-5 w-14 rotate-[9deg] bg-paper/60 backdrop-blur-[1px] md:-right-5 md:h-9 md:w-28" />
+                <img src={kaizoAsset.url} alt="Kaizo, the editor behind EDITEDGE" width="640" height="640" fetchPriority="high" className="aspect-square w-full object-cover" />
+                <span className="absolute bottom-2 left-2 font-mono text-[7px] text-ink md:bottom-5 md:left-6 md:text-[11px]">KAIZO / 2026</span>
               </div>
-              <div className="mt-8 flex justify-end font-mono text-[10px] text-muted-foreground">REC <span className="mx-2 text-primary">●</span> 00:00:{String(24 + seconds).padStart(2, "0")}:12</div>
+              <div className="mt-8 hidden justify-end font-mono text-[10px] text-muted-foreground md:flex">REC <span className="mx-2 text-primary">●</span> 00:00:{String(24 + seconds).padStart(2, "0")}:12</div>
             </div>
           </div>
         </section>
 
-        <section id="work" className="relative scroll-mt-20 overflow-hidden bg-paper px-5 py-24 text-ink md:px-10 lg:px-16">
+        <section id="work" className="relative scroll-mt-20 overflow-hidden bg-paper px-5 pb-20 pt-8 text-ink md:px-10 md:py-24 lg:px-16">
           <div aria-hidden className="pointer-events-none absolute left-1/2 top-32 -translate-x-1/2 font-display text-[28vw] leading-none text-transparent opacity-10 [-webkit-text-stroke:2px_var(--ink)]">KAIZO</div>
           <SectionHeading number="/02" title="Selected work" note="press play. judge the cut." dark />
-          <div className="relative mx-auto mt-16 max-w-7xl space-y-20">
+          <div className="relative mx-auto mt-7 max-w-7xl space-y-16 md:mt-16 md:space-y-20">
             {work.map((group, groupIndex) => (
               <article key={group.name}>
-                <div className="mb-7 flex flex-col justify-between gap-2 border-b-2 border-ink pb-3 md:flex-row md:items-end">
-                  <h3 className="font-display text-4xl uppercase md:text-6xl">{group.name}</h3>
-                  <p className="font-hand text-2xl text-primary">{group.caption}</p>
+                <div className="mb-4 flex flex-col justify-between gap-1 border-b-2 border-ink pb-2 md:mb-7 md:flex-row md:items-end md:gap-2 md:pb-3">
+                  <h3 className="font-display text-3xl uppercase md:text-6xl">{group.name}</h3>
+                  <p className="font-hand text-xl text-primary md:text-2xl">{group.caption}</p>
                 </div>
                 <div className={group.vertical ? "grid grid-cols-2 gap-4 md:grid-cols-4" : "grid gap-5 md:grid-cols-3"}>
-                  {group.ids.map((id, index) => <VideoCard key={id} id={id} vertical={group.vertical} index={index + groupIndex} />)}
+                  {group.ids.map((id, index) => <VideoCard key={id} id={id} active={activeVideoId === id} vertical={group.vertical} index={index + groupIndex} />)}
                 </div>
               </article>
             ))}
@@ -117,7 +143,7 @@ function Index() {
               <span className="absolute -bottom-8 right-0 rotate-[-8deg] font-hand text-5xl text-primary">Kaizo</span>
             </div>
             <div>
-              <p className="text-2xl leading-relaxed md:text-4xl">I'm Kaizo. I edit videos for creators, brands and real-estate people who are tired of content that gets ignored. I handle everything myself — cutting, pacing, sound design, color — so what you get is one person's full attention, not a pipeline.</p>
+              <p className="text-2xl leading-relaxed md:text-4xl">I'm Kaizo, the editor behind EDITEDGE. I edit videos for creators, brands and real-estate people who are tired of content that gets ignored. I handle everything myself — cutting, pacing, sound design, color — so what you get is one person's full attention, not a pipeline.</p>
               <div className="mt-9 flex flex-wrap gap-3">{["Precision cuts", "Cinematic color", "High-retention storytelling", "Fast turnaround"].map((badge, i) => <span key={badge} className={`border border-primary px-4 py-2 font-mono text-xs uppercase ${i % 2 ? "rotate-[-1deg]" : "rotate-[1deg]"}`}>{badge}</span>)}</div>
               <p className="mt-10 inline-block rotate-[-2deg] border-2 border-primary px-4 py-2 font-mono text-xs font-bold text-primary">ONE EDITOR. ONE STANDARD.</p>
               <p className="mt-7 font-hand text-3xl"><s className="text-muted-foreground">we</s> I made the cut.</p>
@@ -172,8 +198,8 @@ function Index() {
       </main>
       <Footer />
       <div className="fixed bottom-5 right-5 z-40 flex flex-col gap-3">
-        <Button asChild variant="icon" className="h-10 min-h-10 w-10" aria-label="Instagram"><a href={INSTAGRAM_URL} target="_blank" rel="noreferrer"><Instagram size={18} /></a></Button>
-        <Button asChild variant="primary" className="h-14 min-h-14 w-14 rounded-full p-0" aria-label="Message Kaizo on WhatsApp"><a href={WHATSAPP_URL} target="_blank" rel="noreferrer"><MessageCircle size={23} /></a></Button>
+         <Button asChild variant="icon" className="h-10 min-h-10 w-10" aria-label="Instagram"><a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer"><Instagram size={18} /></a></Button>
+         <Button asChild variant="primary" className="h-14 min-h-14 w-14 rounded-full p-0" aria-label="Message Kaizo on WhatsApp"><a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer"><MessageCircle size={23} /></a></Button>
       </div>
     </div>
   );
