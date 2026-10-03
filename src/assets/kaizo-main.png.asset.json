@@ -2,10 +2,9 @@
   "version": 1,
   "asset_id": "9d6ee120-215a-450c-8afc-d07998da1577",
   "project_id": "f34d8a1e-4ef0-4eea-92d9-faac52d6945b",
-  "url": "/__l5e/assets-v1/9d6ee120-215a-450c-8afc-d07998da1577/kaizo-main.png",
-  "r2_key": "a/v1/f34d8a1e-4ef0-4eea-92d9-faac52d6945b/9d6ee120-215a-450c-8afc-d07998da1577/kaizo-main.png",
+  "url": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAoHCAkIBgoJCAkMCwoMDxoRDw4ODx8WGBMaJSEnJiQhJCMpLjsyKSw4LCMkM0Y0OD0/",
   "original_filename": "kaizo-main.png",
-  "size": 701551,
-  "content_type": "image/png",
+  "size": 16423,
+  "content_type": "image/jpeg",
   "created_at": "2026-10-01T17:27:48Z"
 }
