@@ -16,7 +16,7 @@ export const buttonVariants = cva(
         link: "min-h-0 border-0 p-0 text-primary underline-offset-4 hover:underline",
         outline: "border-border bg-transparent text-foreground hover:border-primary hover:text-primary",
         paper: "bg-paper text-ink shadow-hard hover:-translate-y-0.5",
-        icon: "h-12 min-h-12 w-12 border-border bg-surface p-0 text-foreground hover:border-primary hover:text-primary",
+        icon: "h-12 min-h-12 w-12 border-border bg-surface p-0 text-primary hover:border-primary hover:bg-primary hover:text-primary-foreground",
       },
       size: {
         default: "min-h-11 px-5 py-3",
@@ -35,9 +35,36 @@ export type ButtonProps = React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & { asChild?: boolean };
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function Button(
-  { className, variant, size, asChild, ...props },
+  { className, variant, size, asChild, onClick, ...props },
   ref,
 ) {
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    onClick?.(event);
+    if (event.defaultPrevented) return;
+
+    const target = event.currentTarget as HTMLElement;
+    const href = target.getAttribute("href") ?? "";
+    if (!href.includes("wa.me/")) return;
+
+    const serviceCard = target.closest("article");
+    const serviceTitle = serviceCard?.querySelector("h3")?.textContent?.trim();
+    if (!serviceTitle) return;
+
+    const service = serviceTitle.toLowerCase();
+    let message = "Hi Kaizo, I saw your EDITEDGE portfolio and I'd like to discuss a project.";
+
+    if (service.includes("video editing")) {
+      message = "Hi Kaizo, I saw your EDITEDGE portfolio and I'm interested in your Video Editing service. I'd like to discuss my project and get started.";
+    } else if (service.includes("color grading")) {
+      message = "Hi Kaizo, I saw your EDITEDGE portfolio and I'm interested in your Color Grading service. I'd like to discuss my footage and get started.";
+    } else if (service.includes("graphic design")) {
+      message = "Hi Kaizo, I saw your EDITEDGE portfolio and I'm interested in your Graphic Design service. I'd like to discuss my design requirements and get started.";
+    }
+
+    event.preventDefault();
+    window.open(`https://wa.me/919058729619?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
+  };
+
   const Component = asChild ? Slot : "button";
-  return <Component ref={ref} className={cn(buttonVariants({ variant, size }), className)} {...props} />;
+  return <Component ref={ref} className={cn(buttonVariants({ variant, size }), className)} onClick={handleClick} {...props} />;
 });
